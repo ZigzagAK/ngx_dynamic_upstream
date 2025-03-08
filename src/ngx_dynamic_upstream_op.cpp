@@ -227,6 +227,25 @@ search_peer(typename TypeSelect<S>::peers_type *primary,
 }
 
 
+template <class S> void
+update_tries(typename TypeSelect<S>::peers_type *peers)
+{
+    ngx_uint_t                           t;
+    typename TypeSelect<S>::peer_type   *peer;
+
+    t = 0;
+
+    for (peer = peers->peer;
+         peer != NULL;
+         peer = peer->next)
+    {
+        if (!peer->down)
+            t++;
+    }
+
+    peers->tries = t;
+}
+
 template <class S> static ngx_int_t
 ngx_dynamic_upstream_op_add_peer(ngx_log_t *log,
     ngx_dynamic_upstream_op_t *op, ngx_slab_pool_t *shpool,
@@ -333,6 +352,8 @@ add:
     peers->single = (peers->number == 0);
     peers->number++;
     peers->weighted = (peers->total_weight != peers->number);
+
+    update_tries<S>(peers);
 
     primary->next = backup;
 
@@ -930,6 +951,8 @@ check:
     found.peers->total_weight -= found.peer->weight;
     found.peers->single = found.peers->number == 1;
     found.peers->weighted = found.peers->total_weight != found.peers->number;
+
+    update_tries<S>(found.peers);
 
     if (found.peers->number == 0) {
         assert(found.peers == primary->next);
