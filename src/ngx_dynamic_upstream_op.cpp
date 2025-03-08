@@ -1008,6 +1008,8 @@ ngx_dynamic_upstream_op_update_peer(typename TypeSelect<S>::peers_type *peers,
         peer->checked = ngx_time();
         peer->fails = 0;
 
+        update_tries<S>(peers);
+
         ngx_log_error(NGX_LOG_NOTICE, log, 0, "%V: up peer %V",
                       &op->upstream, &peer->name);
     }
@@ -1017,6 +1019,8 @@ ngx_dynamic_upstream_op_update_peer(typename TypeSelect<S>::peers_type *peers,
         peer->down = 1;
         peer->checked = ngx_time();
         peer->fails = peer->max_fails;
+
+        update_tries<S>(peers);
 
         ngx_log_error(NGX_LOG_NOTICE, log, 0, "%V: down peer %V",
                       &op->upstream, &peer->name);
